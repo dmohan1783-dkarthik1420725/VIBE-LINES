@@ -2,3 +2,5 @@ streamlit
 supabase
 streamlit-webrtc
 requests
+st-js
+extra-streamlit-components
