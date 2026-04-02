@@ -102,7 +102,7 @@ with st.sidebar:
     
     # Meta AI Button (Top of list like WhatsApp)
     st.markdown("<br>", unsafe_allow_html=True)
-    if st.button("🔱 Ask VEDA AI", use_container_width=True):
+    if st.button("🔱 Ask VEDA 3.0 ultra", use_container_width=True):
         st.session_state.view = "Veda"
     
     st.write("---")
