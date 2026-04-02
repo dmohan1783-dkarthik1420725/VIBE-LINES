@@ -1,9 +1,9 @@
 import streamlit as st
 from supabase import create_client
 import time
+from datetime import datetime
 
 # --- 1. SETTINGS & LOGO ---
-# Trishul Logo
 LOGO_URL = "https://img.icons8.com/ios-filled/512/FFFFFF/trident.png" 
 AI_LINK = "https://veda-ultra-india.streamlit.app"
 
@@ -21,46 +21,39 @@ if 'current_chat' not in st.session_state:
 @st.cache_resource
 def init_connection():
     try:
-        url = st.secrets["SUPABASE_URL"]
-        key = st.secrets["SUPABASE_KEY"]
-        return create_client(url, key)
-    except Exception as e:
+        if "SUPABASE_URL" in st.secrets and "SUPABASE_KEY" in st.secrets:
+            url = st.secrets["SUPABASE_URL"]
+            key = st.secrets["SUPABASE_KEY"]
+            return create_client(url, key)
+    except Exception:
         return None
+    return None
 
 supabase = init_connection()
 
-# --- 4. SPLASH SCREEN ---
-if not st.session_state.initialized:
-    placeholder = st.empty()
-    with placeholder.container():
-        st.markdown("<br><br><br><br>", unsafe_allow_html=True)
-        _, col2, _ = st.columns([1, 1, 1])
-        with col2:
-            st.image(LOGO_URL, width=150)
-            st.markdown("<h1 style='text-align: center; color: white;'>VibeLine</h1>", unsafe_allow_html=True)
-            st.markdown("<p style='text-align: center; color: gray;'>from</p>", unsafe_allow_html=True)
-            st.markdown("<h3 style='text-align: center; color: #9d4edd;'>VEDA 3.0 ULTRA</h3>", unsafe_allow_html=True)
-    time.sleep(3)
-    placeholder.empty()
-    st.session_state.initialized = True
-
-# --- 5. CUSTOM WHATSAPP CSS ---
+# --- 4. CUSTOM CSS (WhatsApp & Meta Style) ---
 st.markdown(f"""
     <style>
     .stApp {{ background-color: #0b141a; color: white; }}
     
-    /* Meta-style VEDA Button */
-    .veda-btn-container {{
-        display: flex;
-        align-items: center;
-        background: linear-gradient(90deg, rgba(157, 78, 237, 0.2), rgba(0, 210, 255, 0.1));
-        padding: 12px;
-        border-radius: 50px;
-        border: 1px solid #9d4edd;
-        margin-bottom: 25px;
-        cursor: pointer;
+    /* Splash Screen Animations */
+    .meta-ring {{
+        width: 120px; height: 120px;
+        background: linear-gradient(45deg, #00d2ff, #9d4edd, #00d2ff);
+        background-size: 200% 200%;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 0 30px rgba(0, 210, 255, 0.4);
+        animation: gradient-move 3s ease infinite;
+        margin: 0 auto;
     }}
     
+    @keyframes gradient-move {{
+        0% {{ background-position: 0% 50%; }}
+        50% {{ background-position: 100% 50%; }}
+        100% {{ background-position: 0% 50%; }}
+    }}
+
     /* Chat Bubbles */
     .chat-bubble-me {{ 
         background-color: #005c4b; padding: 12px; border-radius: 15px 2px 15px 15px; 
@@ -71,54 +64,103 @@ st.markdown(f"""
         margin: 8px; float: left; width: 70%; border: 1px solid #3b4a54; color: white; 
     }}
     
-    .footer {{ position: fixed; left: 0; bottom: 0; width: 100%; text-align: center; padding: 10px; background-color: #111b21; color: gray; font-size: 12px; z-index: 99; }}
+    /* Sidebar Buttons */
+    .stButton>button {{
+        border-radius: 20px;
+        background-color: #202c33;
+        color: white;
+        border: 1px solid #3b4a54;
+        transition: 0.3s;
+    }}
+    .stButton>button:hover {{
+        border-color: #00d2ff;
+        color: #00d2ff;
+    }}
+
+    .footer {{ position: fixed; left: 0; bottom: 0; width: 100%; text-align: center; padding: 10px; background-color: #111b21; color: gray; font-size: 11px; z-index: 100; }}
     </style>
     """, unsafe_allow_html=True)
 
-# --- 6. SIDEBAR NAVIGATION ---
+# --- 5. SPLASH SCREEN ---
+if not st.session_state.initialized:
+    placeholder = st.empty()
+    with placeholder.container():
+        st.markdown("<br><br><br><br>", unsafe_allow_html=True)
+        # Center Branding
+        st.markdown(f"""
+            <div style="text-align: center;">
+                <div class="meta-ring">
+                    <img src="{LOGO_URL}" width="70">
+                </div>
+                <br>
+                <h1 style="color: #00d2ff; font-family: 'Segoe UI', sans-serif; letter-spacing: 3px; margin-bottom: 0px;">VIBE LINE</h1>
+                <p style="color: #8696a0; font-size: 14px; font-weight: 500; letter-spacing: 1px; margin-top: 5px;">POWERED BY VEDA 3.0 ULTRA</p>
+            </div>
+        """, unsafe_allow_html=True)
+        
+        # Simple loading bar
+        bar = st.progress(0)
+        for i in range(100):
+            time.sleep(0.02)
+            bar.progress(i + 1)
+            
+    placeholder.empty()
+    st.session_state.initialized = True
+
+# --- 6. SIDEBAR (Contacts & AI) ---
 with st.sidebar:
-    st.markdown("<h2 style='color: white;'>VibeLine</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='color: #00d2ff;'>VibeLine</h2>", unsafe_allow_html=True)
     
-    # Meta AI Entry Point
-    st.markdown('<div class="veda-btn-container"><div style="font-size:14px; width:100%; text-align:center;">🔱 Ask VEDA 3.0 ULTRA</div></div>', unsafe_allow_html=True)
+    # Meta AI Styled Entry
+    st.markdown('<div style="background: rgba(0, 210, 255, 0.1); border: 1px solid #00d2ff; padding: 10px; border-radius: 15px; text-align: center; margin-bottom: 10px;">🔱 Meta AI Mode</div>', unsafe_allow_html=True)
     if st.button("Launch VEDA AI", use_container_width=True):
         st.session_state.view = "Veda"
     
     st.write("---")
-    st.caption("CHATS")
+    st.caption("CONTACTS")
     
-    # Group and Personal Chat Options
-    chat_rooms = ["General Group", "Family Chat", "School Project", "Developers"]
-    for room in chat_rooms:
-        if st.button(f"💬 {room}", use_container_width=True):
-            st.session_state.current_chat = room
+    # Contact List
+    contacts = [
+        {"name": "General Group", "icon": "🌐"},
+        {"name": "Praneetha", "icon": "👧"},
+        {"name": "Dad (IAF)", "icon": "🎖️"},
+        {"name": "Developers", "icon": "👨‍💻"}
+    ]
+    
+    for c in contacts:
+        if st.button(f"{c['icon']} {c['name']}", use_container_width=True):
+            st.session_state.current_chat = c['name']
             st.session_state.view = "Chat"
             st.rerun()
 
 # --- 7. MAIN INTERFACE ---
 if st.session_state.view == "Chat":
     st.subheader(f"⚡ {st.session_state.current_chat}")
+    st.write("---")
     
-    # Fetch and Display Messages
-    if supabase:
-        try:
-            response = supabase.table("messages").select("*").eq("room", st.session_state.current_chat).order("created_at").execute()
-            messages = response.data
-            
-            for msg in messages:
-                div_class = "chat-bubble-me" if msg["role"] == "me" else "chat-bubble-them"
-                st.markdown(f'<div class="{div_class}">{msg["content"]}</div>', unsafe_allow_html=True)
-        except Exception:
-            st.error("Could not load messages. Check your SQL table!")
+    # Message Display Area
+    chat_box = st.container()
+    with chat_box:
+        if supabase:
+            try:
+                # Fetch messages for the current room
+                res = supabase.table("messages").select("*").eq("room", st.session_state.current_chat).order("created_at").execute()
+                for msg in res.data:
+                    div = "chat-bubble-me" if msg["role"] == "me" else "chat-bubble-them"
+                    st.markdown(f'<div class="{div}">{msg["content"]}</div>', unsafe_allow_html=True)
+            except Exception:
+                st.info("Start a conversation!")
+        else:
+            st.error("Database not connected. Check your Secrets!")
 
-    # Fixed Message Input
-    with st.form("chat_form", clear_on_submit=True):
+    # Input Form (Fixed at bottom)
+    with st.form("input_area", clear_on_submit=True):
         col1, col2 = st.columns([9, 1])
-        user_input = col1.text_input("Type a message...", label_visibility="collapsed")
-        if col2.form_submit_button("➔") and user_input:
+        u_input = col1.text_input("Type a message...", label_visibility="collapsed")
+        if col2.form_submit_button("➔") and u_input:
             if supabase:
                 supabase.table("messages").insert({
-                    "content": user_input, 
+                    "content": u_input, 
                     "role": "me", 
                     "room": st.session_state.current_chat
                 }).execute()
@@ -126,11 +168,15 @@ if st.session_state.view == "Chat":
 
 # --- 8. VEDA AI VIEW ---
 elif st.session_state.view == "Veda":
-    st.button("← Back to Messages", on_click=lambda: st.session_state.update({"view": "Chat"}))
+    if st.button("← Back to Messages"):
+        st.session_state.view = "Chat"
+        st.rerun()
+    
+    # Iframe for your AI
     st.markdown(f"""
         <iframe src="{AI_LINK}" 
-        style="width:100%; height:85vh; border:none; border-radius:15px; box-shadow: 0 0 20px #9d4edd;">
+        style="width:100%; height:80vh; border:none; border-radius:20px; box-shadow: 0 0 25px rgba(157, 78, 237, 0.4);">
         </iframe>
         """, unsafe_allow_html=True)
 
-st.markdown('<div class="footer">VibeLine ⚡ Secured by VEDA 3.0 Ultra India</div>', unsafe_allow_html=True)
+st.markdown('<div class="footer">VIBE LINE ⚡ Powered by VEDA 3.0 Ultra India</div>', unsafe_allow_html=True)
